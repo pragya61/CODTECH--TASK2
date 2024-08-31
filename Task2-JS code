@@ -1,0 +1,115 @@
+// script.js
+
+document.addEventListener('DOMContentLoaded', () => {
+    const authForm = document.getElementById('authForm');
+    const authTitle = document.getElementById('authTitle');
+    const authButton = document.getElementById('authButton');
+    const blogSection = document.getElementById('blogSection');
+    const authSection = document.getElementById('authSection');
+    const createPostButton = document.getElementById('createPostButton');
+    const postsContainer = document.getElementById('postsContainer');
+    
+    let loggedIn = false;
+    let currentUser = null;
+    let posts = [];
+
+    function renderPosts() {
+        postsContainer.innerHTML = '';
+        posts.forEach((post, index) => {
+            const postDiv = document.createElement('div');
+            postDiv.className = 'post';
+            postDiv.innerHTML = `
+                <div class="post-title">${post.title}</div>
+                <div class="post-content">${post.content}</div>
+                <button onclick="editPost(${index})">Edit</button>
+                <button onclick="deletePost(${index})">Delete</button>
+                <div class="comment-section">
+                    <h3>Comments</h3>
+                    <form class="comment-form" onsubmit="addComment(event, ${index})">
+                        <input type="text" class="commentInput" placeholder="Add a comment" required>
+                        <button type="submit">Add Comment</button>
+                    </form>
+                    <div class="commentsContainer">
+                        ${post.comments.map(comment => `<div class="comment">${comment}</div>`).join('')}
+                    </div>
+                </div>
+            `;
+            postsContainer.appendChild(postDiv);
+        });
+    }
+
+    function addComment(event, postIndex) {
+        event.preventDefault();
+        const commentInput = event.target.querySelector('.commentInput');
+        const commentText = commentInput.value.trim();
+        if (commentText) {
+            posts[postIndex].comments.push(commentText);
+            renderPosts();
+            commentInput.value = '';
+        }
+    }
+
+    function editPost(index) {
+        const title = prompt('Edit title:', posts[index].title);
+        const content = prompt('Edit content:', posts[index].content);
+        if (title !== null && content !== null) {
+            posts[index].title = title;
+            posts[index].content = content;
+            renderPosts();
+        }
+    }
+
+    function deletePost(index) {
+        posts.splice(index, 1);
+        renderPosts();
+    }
+
+    authForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        if (username && password) {
+            loggedIn = true;
+            currentUser = username;
+            authSection.style.display = 'none';
+            blogSection.style.display = 'block';
+            renderPosts();
+        }
+    });
+
+    createPostButton.addEventListener('click', () => {
+        const title = document.getElementById('postTitle').value.trim();
+        const content = document.getElementById('postContent').value.trim();
+        if (title && content) {
+            posts.push({
+                title: title,
+                content: content,
+                comments: []
+            });
+            renderPosts();
+            document.getElementById('postTitle').value = '';
+            document.getElementById('postContent').value = '';
+        }
+    });
+
+    document.getElementById('loginLink').addEventListener('click', () => {
+        authTitle.textContent = 'Login';
+        authSection.style.display = 'block';
+        blogSection.style.display = 'none';
+    });
+
+    document.getElementById('signupLink').addEventListener('click', () => {
+        authTitle.textContent = 'Sign Up';
+        authSection.style.display = 'block';
+        blogSection.style.display = 'none';
+    });
+
+    document.getElementById('logoutLink').addEventListener('click', () => {
+        loggedIn = false;
+        currentUser = null;
+        authSection.style.display = 'block';
+        blogSection.style.display = 'none';
+        posts = [];
+        renderPosts();
+    });
+});
